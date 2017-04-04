@@ -3,18 +3,20 @@ import Utilities
 import System.Random
 import Data.Char
 
+-- chatterbott takes String and an array with a tuple of 1 string and then an array of strings and pushes it to IO (I guess it uses random to choose from array)
+--
 chatterbot :: String -> [(String, [String])] -> IO ()
 chatterbot botName botRules = do
-    putStrLn ("\n\nHi! I am " ++ botName ++ ". How are you?")
-    botloop
+    putStrLn ("\n\nHi! I am " ++ botName ++ ". How are you?")                   -- like "begin" of session
+    botloop                                                                     -- botloop = the loop where he takes question and put answer
   where
-    brain = rulesCompile botRules
-    botloop = do
+    brain = rulesCompile botRules                                               -- Compile rules out of botRules which is the input.
+    botloop = do                                                                -- To be written. Creates the brain, ie what we know
       putStr "\n: "
       question <- getLine
-      answer <- stateOfMind brain
-      putStrLn (botName ++ ": " ++ (present . answer . prepare) question)
-      if (not . endOfDialog) question then botloop else return ()
+      answer <- stateOfMind brain                                               -- To be written. Chooses the rule to use, uses the brain
+      putStrLn (botName ++ ": " ++ (present . answer . prepare) question)       -- combine presenter/answer/prepare to the question.
+      if (not . endOfDialog) question then botloop else return ()               -- Have to implement endOfDialog somehow in one method.
 
 --------------------------------------------------------
 
@@ -25,7 +27,7 @@ type BotBrain = [(Phrase, [Phrase])]
 
 --------------------------------------------------------
 
-stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
+stateOfMind :: BotBrain -> IO (Phrase -> Phrase)                               -- Takes a botBrain and turns it into inPutOutput where we have a phrase -> phrase.
 {- TO BE WRITTEN -}
 stateOfMind _ = return id
 
@@ -68,7 +70,7 @@ present = unwords
 prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
-rulesCompile :: [(String, [String])] -> BotBrain
+rulesCompile :: [(String, [String])] -> BotBrain                                -- To be done method. Rules I suppose
 {- TO BE WRITTEN -}
 rulesCompile _ = []
 
