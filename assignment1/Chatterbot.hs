@@ -109,6 +109,7 @@ reductionsApply _ = id
 substitute :: Eq a => a -> [a] -> [a] -> [a]
 substitute _ _ _ = []
 --substitute a b c = 
+      -- | 
 {- TO BE WRITTEN -}
 
 -- Tries to match two lists. If they match, the result consists of the sublist
