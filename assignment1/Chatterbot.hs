@@ -110,7 +110,14 @@ substitute :: Eq a => a -> [a] -> [a] -> [a]
 substitute _ _ _ = []
 --substitute a b c = 
       -- | 
-{- TO BE WRITTEN -}
+{- TO BE WRITTEN
+substitute :: Eq a => a -> a -> [a] -> [a]
+substitute _ _ [] = []
+substitute x y (z:zs)                   --map(\n -> if n==x then y; else n) z
+    | z == x    = y:substitute x y zs
+    | otherwise = z:substitute x y zs
+
+ -}
 
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
