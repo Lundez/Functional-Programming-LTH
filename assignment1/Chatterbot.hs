@@ -31,11 +31,11 @@ stateOfMind :: BotBrain -> IO (Phrase -> Phrase)                               -
 {- TO BE WRITTEN -}
 stateOfMind _ = return id
 
-rulesApply :: [PhrasePair] -> Phrase -> Phrase
+rulesApply :: [PhrasePair] -> Phrase -> Phrase                                 
 {- TO BE WRITTEN -}
 rulesApply _ = id
 
-reflect :: Phrase -> Phrase
+reflect :: Phrase -> Phrase                                                    -- Reflect question?
 {- TO BE WRITTEN -}
 reflect = id
 
@@ -108,8 +108,8 @@ reductionsApply _ = id
 -- Replaces a wildcard in a list with the list given as the third argument
 substitute :: Eq a => a -> [a] -> [a] -> [a]
 substitute _ _ _ = []
+--substitute a b c = 
 {- TO BE WRITTEN -}
-
 
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
@@ -117,15 +117,12 @@ match :: Eq a => a -> [a] -> [a] -> Maybe [a]
 match _ _ _ = Nothing
 {- TO BE WRITTEN -}
 
-
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs) = Nothing
 {- TO BE WRITTEN -}
 longerWildcardMatch (wc:ps) (x:xs) = Nothing
 {- TO BE WRITTEN -}
-
-
 
 -- Test cases --------------------
 
