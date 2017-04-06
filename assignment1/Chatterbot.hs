@@ -30,7 +30,7 @@ stateOfMind :: BotBrain -> IO (Phrase -> Phrase)                               -
 {- TO BE WRITTEN -}
 stateOfMind _ = return id
 
-rulesApply :: [PhrasePair] -> Phrase -> Phrase                                 
+rulesApply :: [PhrasePair] -> Phrase -> Phrase
 {- TO BE WRITTEN -}
 rulesApply _ = id
 
@@ -106,29 +106,44 @@ reductionsApply _ = id
 
 -- Replaces a wildcard in a list with the list given as the third argument
 substitute :: Eq a => a -> [a] -> [a] -> [a]
-substitute _ _ _ = []
---substitute a b c = 
-      -- | 
-{- TO BE WRITTEN
-substitute :: Eq a => a -> a -> [a] -> [a]
-substitute _ _ [] = []
-substitute x y (z:zs)                   --map(\n -> if n==x then y; else n) z
-    | z == x    = y:substitute x y zs
-    | otherwise = z:substitute x y zs
+substitute _ [] _ = []
+substitute a (b:bs) cs
+    | a == b    = merge (cs) (substitute a bs cs)
+    | otherwise = b : substitute a bs cs
 
- -}
+
+
+merge :: Eq a => [a] -> [a] -> [a]
+merge [] bs = bs
+merge as [] = as
+merge (a:as) bs = a : merge as bs
 
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
 match :: Eq a => a -> [a] -> [a] -> Maybe [a]
-match _ _ _ = Nothing
+match w [] [] = Just []
+match w [] c = Nothing
+match w b [] = Nothing
+match w (b:bs) (c:cs)
+--    | 
+    | otherwise                     = match a bs cs
+
+--  | length(b:bs) /= length(c:cs)  = Nothing
+--  | wildcardExists (b:bs) /= True = isSame (b:bs) (c:cs)
+--  | a == b                        = match a (merge (findStringBeforeSpace c:cs) (bs)) cs
+
 {- TO BE WRITTEN -}
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
-singleWildcardMatch (wc:ps) (x:xs) = Nothing
-{- TO BE WRITTEN -}
-longerWildcardMatch (wc:ps) (x:xs) = Nothing
+singleWildcardMatch (wc:ps) (x:xs)
+    | ps == xs                  = Just [x] --isJust(match wc ps xs) = Just [x]
+    | otherwise                 = Nothing
+
+longerWildcardMatch (wc:ps) (x:xs) = mmap (x:) (match wc (wc:ps) xs)
+ --   | length(ps) == length (xs) && ps /= xs     = Nothing
+ --   | ps == xs                                  = []
+ --   | otherwise                                 = x : longerWildcardMatch (wc:ps) (xs)
 {- TO BE WRITTEN -}
 
 -- Test cases --------------------
