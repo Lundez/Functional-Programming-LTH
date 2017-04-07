@@ -2,6 +2,7 @@ module Chatterbot where
 import Utilities
 import System.Random
 import Data.Char
+import Data.Maybe(isJust, fromJust, fromMaybe)
 
 -- chatterbott takes String and an array with a tuple of 1 string and then an array of strings and pushes it to IO (I guess it uses random to choose from array)
 chatterbot :: String -> [(String, [String])] -> IO ()
@@ -111,8 +112,6 @@ substitute a (b:bs) cs
     | a == b    = merge (cs) (substitute a bs cs)
     | otherwise = b : substitute a bs cs
 
-
-
 merge :: Eq a => [a] -> [a] -> [a]
 merge [] bs = bs
 merge as [] = as
@@ -125,19 +124,14 @@ match w [] [] = Just []
 match w [] c = Nothing
 match w b [] = Nothing
 match w (b:bs) (c:cs)
---    | 
-    | otherwise                     = match a bs cs
-
---  | length(b:bs) /= length(c:cs)  = Nothing
---  | wildcardExists (b:bs) /= True = isSame (b:bs) (c:cs)
---  | a == b                        = match a (merge (findStringBeforeSpace c:cs) (bs)) cs
-
-{- TO BE WRITTEN -}
+    | b /= w && b /= c            = Nothing           -- No match
+    | b /= w && b == c            = match w bs cs     -- Matching string, keep on going but one step further
+    | b == w                      = orElse (singleWildcardMatch (b:bs) (c:cs)) (longerWildcardMatch (b:bs) (c:cs)) -- If 
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
-    | ps == xs                  = Just [x] --isJust(match wc ps xs) = Just [x]
+    | isJust(match wc ps xs)    = Just [x]  -- isJust = bool that is true if Just.| ps == xs                  = Just [x]
     | otherwise                 = Nothing
 
 longerWildcardMatch (wc:ps) (x:xs) = mmap (x:) (match wc (wc:ps) xs)
