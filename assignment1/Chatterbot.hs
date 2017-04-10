@@ -159,12 +159,19 @@ matchCheck = matchTest == Just testSubstitutions
 --------------------------------------------------------
 
 -- Applying a single pattern
+-- wildcard, function, inputstring -> (pattern1, pattern2)
+-- So basically substitute wildcard from p2, use the function and then match to the wildcard on p1. 
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply _ _ _ _ = Nothing
+transformationApply w f input (p1, p2) = mmap((substitute w p2) . f) (match w p1 input)
+
+--transformationApply _ _ _ _ = Nothing
+
 {- TO BE WRITTEN -}
 
-
 -- Applying a list of patterns until one succeeds
+-- maps the function onto the list. Then we fold this with the "orElse" function. So we work till we got a match (starting from right)
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply _ _ _ _ = Nothing
+transformationsApply w f plist input = foldr1 orElse (map (transformationApply w f input) plist) 
+
+--transformationsApply _ _ _ _ = Nothing
 {- TO BE WRITTEN -}
