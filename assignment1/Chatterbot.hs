@@ -35,9 +35,10 @@ rulesApply :: [PhrasePair] -> Phrase -> Phrase
 {- TO BE WRITTEN -}
 rulesApply _ = id
 
-reflect :: Phrase -> Phrase                                                    -- Reflect question?
-{- TO BE WRITTEN -}
-reflect = id
+reflect :: Phrase -> Phrase          
+reflect a:as = map()                                      -- Reflect question?
+  --  | 
+--reflect = id
 
 reflections =
   [ ("am",     "are"),
@@ -126,7 +127,7 @@ match w b [] = Nothing
 match w (b:bs) (c:cs)
     | b /= w && b /= c            = Nothing           -- No match
     | b /= w && b == c            = match w bs cs     -- Matching string, keep on going but one step further
-    | b == w                      = orElse (singleWildcardMatch (b:bs) (c:cs)) (longerWildcardMatch (b:bs) (c:cs)) -- If 
+    | b == w                      = orElse (singleWildcardMatch (b:bs) (c:cs)) (longerWildcardMatch (b:bs) (c:cs))
 
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
@@ -135,10 +136,6 @@ singleWildcardMatch (wc:ps) (x:xs)
     | otherwise                 = Nothing
 
 longerWildcardMatch (wc:ps) (x:xs) = mmap (x:) (match wc (wc:ps) xs)
- --   | length(ps) == length (xs) && ps /= xs     = Nothing
- --   | ps == xs                                  = []
- --   | otherwise                                 = x : longerWildcardMatch (wc:ps) (xs)
-{- TO BE WRITTEN -}
 
 -- Test cases --------------------
 
@@ -164,14 +161,7 @@ matchCheck = matchTest == Just testSubstitutions
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
 transformationApply w f input (p1, p2) = mmap((substitute w p2) . f) (match w p1 input)
 
---transformationApply _ _ _ _ = Nothing
-
-{- TO BE WRITTEN -}
-
 -- Applying a list of patterns until one succeeds
 -- maps the function onto the list. Then we fold this with the "orElse" function. So we work till we got a match (starting from right)
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply w f plist input = foldr1 orElse (map (transformationApply w f input) plist) 
-
---transformationsApply _ _ _ _ = Nothing
-{- TO BE WRITTEN -}
+transformationsApply w f plist input = foldr1 orElse (map (transformationApply w f input) plist)
