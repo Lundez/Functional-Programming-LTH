@@ -29,14 +29,21 @@ type BotBrain = [(Phrase, [Phrase])]
 
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)                               -- Takes a botBrain and turns it into inPutOutput where we have a phrase -> phrase.
 {- TO BE WRITTEN -}
-stateOfMind _ = return id
+stateOfMind _ = do
+  rnd <- randomIO :: IO Float
+  return (rulesApply $ (map. map2) (id, (pick rnd)) brain)
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
+rulesApply = try .transformationsApply "*" reflect
 {- TO BE WRITTEN -}
-rulesApply _ = id
+--rulesApply _ = id
 
 reflect :: Phrase -> Phrase          
-reflect a:as = map()                                      -- Reflect question?
+reflect = map(try (flip lookup reflections))  -- (a:as) = lookup a reflections : reflect
+
+--Use lookup to find corresponding value for each value.
+--Use try to try it.
+--                                     -- Reflect question?
   --  | 
 --reflect = id
 
