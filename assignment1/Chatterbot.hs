@@ -80,7 +80,7 @@ prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
 rulesCompile :: [(String, [String])] -> BotBrain                                -- To be done method. Rules I suppose
 {- TO BE WRITTEN -}
-rulesCompile _ = []
+rulesCompile ppairs = (map . map2) (lowerWords, (map lowerWords)) ppairs where lowerWords = words . map toLower
 
 
 --------------------------------------
