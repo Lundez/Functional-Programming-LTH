@@ -95,7 +95,7 @@ reduce = reductionsApply reductions
 
 reductionsApply :: [PhrasePair] -> Phrase -> Phrase           -- We know that we use "*" as wildcard. transformationsApply works too. 
 reductionsApply =  fix . try . transformationsApply "*" id    -- fix makes the function "recursive", so we take the least Phrase that works with the reduction. ie 
-                                                              -- "please please help" --> "help" instead of "please help" 
+                                                              -- "please please help" --> "help" instead of "please help". So it stops first when f x = x.
 
 -------------------------------------------------------
 -- Match and substitute
