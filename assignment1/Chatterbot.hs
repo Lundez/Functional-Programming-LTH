@@ -28,24 +28,15 @@ type BotBrain = [(Phrase, [Phrase])]
 --------------------------------------------------------
 
 stateOfMind :: BotBrain -> IO (Phrase -> Phrase)                               -- Takes a botBrain and turns it into inPutOutput where we have a phrase -> phrase.
-{- TO BE WRITTEN -}
-stateOfMind _ = do
+stateOfMind brain = do
   rnd <- randomIO :: IO Float
-  return (rulesApply $ (map. map2) (id, (pick rnd)) brain)
+  return $ rulesApply $ (map.map2) (id, (pick rnd)) brain
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-rulesApply = try .transformationsApply "*" reflect
-{- TO BE WRITTEN -}
---rulesApply _ = id
+rulesApply = try.transformationsApply "*" reflect
 
 reflect :: Phrase -> Phrase          
-reflect = map(try (flip lookup reflections))  -- (a:as) = lookup a reflections : reflect
-
---Use lookup to find corresponding value for each value.
---Use try to try it.
---                                     -- Reflect question?
-  --  | 
---reflect = id
+reflect = map $ try $ flip lookup reflections
 
 reflections =
   [ ("am",     "are"),
@@ -78,11 +69,9 @@ present = unwords
 prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
-rulesCompile :: [(String, [String])] -> BotBrain                                -- To be done method. Rules I suppose
-{- TO BE WRITTEN -} --s
-rulesCompile ppairs = (map . map2) (lowerWords, (map lowerWords)) ppairs where lowerWords = words . map toLower
-
-
+rulesCompile :: [(String, [String])] -> BotBrain
+rulesCompile ppairs = (map.map2) (lowerWords, (map lowerWords)) ppairs 
+                      where lowerWords = words . map toLower
 --------------------------------------
 
 
@@ -101,13 +90,12 @@ reductions = (map.map2) (words, words)
     ( "hi *", "hello *")
   ]
 
-reduce :: Phrase -> Phrase
+reduce :: Phrase -> Phrase                                    -- Returns reductionsApply(reductions, X) where X is the phrase used as input.
 reduce = reductionsApply reductions
 
-reductionsApply :: [PhrasePair] -> Phrase -> Phrase
-{- TO BE WRITTEN -}
-reductionsApply _ = id
-
+reductionsApply :: [PhrasePair] -> Phrase -> Phrase           -- We know that we use "*" as wildcard. transformationsApply works too. 
+reductionsApply =  fix . try . transformationsApply "*" id    -- fix makes the function "recursive", so we take the least Phrase that works with the reduction. ie 
+                                                              -- "please please help" --> "help" instead of "please help" 
 
 -------------------------------------------------------
 -- Match and substitute
@@ -117,13 +105,8 @@ reductionsApply _ = id
 substitute :: Eq a => a -> [a] -> [a] -> [a]
 substitute _ [] _ = []
 substitute a (b:bs) cs
-    | a == b    = merge (cs) (substitute a bs cs)
+    | a == b    = cs ++ (substitute a bs cs)       --Merge list of cs and substitution. 
     | otherwise = b : substitute a bs cs
-
-merge :: Eq a => [a] -> [a] -> [a]
-merge [] bs = bs
-merge as [] = as
-merge (a:as) bs = a : merge as bs
 
 -- Tries to match two lists. If they match, the result consists of the sublist
 -- bound to the wildcard in the pattern list.
@@ -139,7 +122,7 @@ match w (b:bs) (c:cs)
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
-    | isJust(match wc ps xs)    = Just [x]  -- isJust = bool that is true if Just.| ps == xs                  = Just [x]
+    | isJust(match wc ps xs)    = Just [x]  -- isJust = bool that is true if Just.  | (old code) ps == xs   = Just [x]
     | otherwise                 = Nothing
 
 longerWildcardMatch (wc:ps) (x:xs) = mmap (x:) (match wc (wc:ps) xs)
