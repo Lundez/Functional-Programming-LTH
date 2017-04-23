@@ -70,10 +70,10 @@ prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
 rulesCompile :: [(String, [String])] -> BotBrain
-rulesCompile ppairs = (map.map2) (lowerWords, (map lowerWords)) ppairs 
-                      where lowerWords = words . map toLower
---------------------------------------
+rulesCompile ppairs = (map.map2) (wordsLower, (map wordsLower)) ppairs 
+                      where wordsLower = words.map toLower
 
+--------------------------------------
 
 reductions :: [PhrasePair]
 reductions = (map.map2) (words, words)
@@ -122,7 +122,7 @@ match w (b:bs) (c:cs)
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
-    | isJust(match wc ps xs)    = Just [x]  -- isJust = bool that is true if Just.  | (old code) ps == xs   = Just [x]
+    | isJust(match wc ps xs)    = Just [x]  -- isJust = bool that is true if Just.
     | otherwise                 = Nothing
 
 longerWildcardMatch (wc:ps) (x:xs) = mmap (x:) (match wc (wc:ps) xs)
@@ -139,8 +139,6 @@ substituteCheck = substituteTest == testString
 matchTest = match '*' testPattern testString
 matchCheck = matchTest == Just testSubstitutions
 
-
-
 -------------------------------------------------------
 -- Applying patterns
 --------------------------------------------------------
@@ -154,4 +152,5 @@ transformationApply w f input (p1, p2) = mmap((substitute w p2) . f) (match w p1
 -- Applying a list of patterns until one succeeds
 -- maps the function onto the list. Then we fold this with the "orElse" function. So we work till we got a match (starting from right)
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply w f plist input = foldr1 orElse (map (transformationApply w f input) plist)
+transformationsApply w f plist input = foldr1 orElse (map (transformationApplied) plist)
+                                          where transformationApplied = transformationApply w f input
