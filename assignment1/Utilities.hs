@@ -19,5 +19,5 @@ fix f x
    |  f x == x  = x
    |  otherwise = fix f (f x)
 
-pick :: RealFrac r => r -> [a] -> a             -- Get a real frac? I DONT KNOW
+pick :: RealFrac r => r -> [a] -> a
 pick u xs = xs !! (floor.(u*).fromIntegral.length) xs

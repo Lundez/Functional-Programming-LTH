@@ -11,12 +11,12 @@ chatterbot botName botRules = do
     botloop                                                                     -- botloop = the loop where he takes question and put answer
   where
     brain = rulesCompile botRules                                               -- Compile rules out of botRules which is the input.
-    botloop = do                                                                -- To be written. Creates the brain, ie what we know
+    botloop = do                                                                
       putStr "\n: "
       question <- getLine
-      answer <- stateOfMind brain                                               -- To be written. Chooses the rule to use, uses the brain
-      putStrLn (botName ++ ": " ++ (present . answer . prepare) question)       -- combine presenter/answer/prepare to the question.
-      if (not . endOfDialog) question then botloop else return ()               -- Have to implement endOfDialog somehow in one method.
+      answer <- stateOfMind brain                                               
+      putStrLn (botName ++ ": " ++ (present . answer . prepare) question)
+      if (not . endOfDialog) question then botloop else return ()
 
 --------------------------------------------------------
 
@@ -33,10 +33,10 @@ stateOfMind brain = do
   return $ rulesApply $ (map.map2) (id, (pick rnd)) brain
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-rulesApply = try.transformationsApply "*" reflect
+rulesApply = (maybe [] id.) . transformationsApply "*" reflect
 
 reflect :: Phrase -> Phrase          
-reflect = map $ try $ flip lookup reflections
+reflect = map.try $ flip lookup reflections
 
 reflections =
   [ ("am",     "are"),
@@ -70,7 +70,7 @@ prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
 rulesCompile :: [(String, [String])] -> BotBrain
-rulesCompile ppairs = (map.map2) (wordsLower, (map wordsLower)) ppairs 
+rulesCompile = (map.map2) (wordsLower, (map wordsLower)) 
                       where wordsLower = words.map toLower
 
 --------------------------------------
@@ -90,12 +90,11 @@ reductions = (map.map2) (words, words)
     ( "hi *", "hello *")
   ]
 
-reduce :: Phrase -> Phrase                                    -- Returns reductionsApply(reductions, X) where X is the phrase used as input.
+reduce :: Phrase -> Phrase
 reduce = reductionsApply reductions
 
-reductionsApply :: [PhrasePair] -> Phrase -> Phrase           -- We know that we use "*" as wildcard. transformationsApply works too. 
-reductionsApply =  fix . try . transformationsApply "*" id    -- fix makes the function "recursive", so we take the least Phrase that works with the reduction. ie 
-                                                              -- "please please help" --> "help" instead of "please help". So it stops first when f x = x.
+reductionsApply :: [PhrasePair] -> Phrase -> Phrase
+reductionsApply =  fix . try . transformationsApply "*" id
 
 -------------------------------------------------------
 -- Match and substitute
@@ -122,7 +121,7 @@ match w (b:bs) (c:cs)
 -- Helper function to match
 singleWildcardMatch, longerWildcardMatch :: Eq a => [a] -> [a] -> Maybe [a]
 singleWildcardMatch (wc:ps) (x:xs)
-    | isJust(match wc ps xs)    = Just [x]  -- isJust = bool that is true if Just.
+    | isJust(match wc ps xs)    = Just [x]
     | otherwise                 = Nothing
 
 longerWildcardMatch (wc:ps) (x:xs) = mmap (x:) (match wc (wc:ps) xs)
@@ -147,10 +146,10 @@ matchCheck = matchTest == Just testSubstitutions
 -- wildcard, function, inputstring -> (pattern1, pattern2)
 -- So basically substitute wildcard from p2, use the function and then match to the wildcard on p1. 
 transformationApply :: Eq a => a -> ([a] -> [a]) -> [a] -> ([a], [a]) -> Maybe [a]
-transformationApply w f input (p1, p2) = mmap((substitute w p2) . f) (match w p1 input)
+transformationApply w f input (pattern1, pattern2) = mmap((substitute w pattern2) . f) (match w pattern1 input)
 
 -- Applying a list of patterns until one succeeds
 -- maps the function onto the list. Then we fold this with the "orElse" function. So we work till we got a match (starting from right)
 transformationsApply :: Eq a => a -> ([a] -> [a]) -> [([a], [a])] -> [a] -> Maybe [a]
-transformationsApply w f plist input = foldr1 orElse (map (transformationApplied) plist)
+transformationsApply w f patternlist input = foldr1 orElse (map (transformationApplied) patternlist)
                                           where transformationApplied = transformationApply w f input
