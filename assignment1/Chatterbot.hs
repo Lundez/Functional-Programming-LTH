@@ -4,13 +4,12 @@ import System.Random
 import Data.Char
 import Data.Maybe(isJust, fromJust, fromMaybe)
 
--- chatterbott takes String and an array with a tuple of 1 string and then an array of strings and pushes it to IO (I guess it uses random to choose from array)
 chatterbot :: String -> [(String, [String])] -> IO ()
 chatterbot botName botRules = do
-    putStrLn ("\n\nHi! I am " ++ botName ++ ". How are you?")                   -- like "begin" of session
-    botloop                                                                     -- botloop = the loop where he takes question and put answer
+    putStrLn ("\n\nHi! I am " ++ botName ++ ". How are you?")
+    botloop
   where
-    brain = rulesCompile botRules                                               -- Compile rules out of botRules which is the input.
+    brain = rulesCompile botRules
     botloop = do                                                                
       putStr "\n: "
       question <- getLine
@@ -27,7 +26,7 @@ type BotBrain = [(Phrase, [Phrase])]
 
 --------------------------------------------------------
 
-stateOfMind :: BotBrain -> IO (Phrase -> Phrase)                               -- Takes a botBrain and turns it into inPutOutput where we have a phrase -> phrase.
+stateOfMind :: BotBrain -> IO (Phrase -> Phrase)
 stateOfMind brain = do
   rnd <- randomIO :: IO Float
   return $ rulesApply $ (map.map2) (id, (pick rnd)) brain
@@ -56,7 +55,6 @@ reflections =
     ("yours",  "mine"),
     ("you",    "me")
   ]
-
 
 ---------------------------------------------------------------------------------
 
@@ -104,7 +102,7 @@ reductionsApply =  fix . try . transformationsApply "*" id
 substitute :: Eq a => a -> [a] -> [a] -> [a]
 substitute _ [] _ = []
 substitute a (b:bs) cs
-    | a == b    = cs ++ (substitute a bs cs)       --Merge list of cs and substitution. 
+    | a == b    = cs ++ (substitute a bs cs)
     | otherwise = b : substitute a bs cs
 
 -- Tries to match two lists. If they match, the result consists of the sublist
