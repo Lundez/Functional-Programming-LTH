@@ -33,10 +33,10 @@ stateOfMind brain = do
   return $ rulesApply $ (map.map2) (id, (pick rnd)) brain
 
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
-rulesApply = try.transformationsApply "*" reflect
+rulesApply = (maybe [] id.) . transformationsApply "*" reflect
 
 reflect :: Phrase -> Phrase          
-reflect = map $ try $ flip lookup reflections
+reflect = map.try $ flip lookup reflections
 
 reflections =
   [ ("am",     "are"),
@@ -70,7 +70,7 @@ prepare :: String -> Phrase
 prepare = reduce . words . map toLower . filter (not . flip elem ".,:;*!#%&|")
 
 rulesCompile :: [(String, [String])] -> BotBrain
-rulesCompile pairs = (map.map2) (wordsLower, (map wordsLower)) pairs 
+rulesCompile = (map.map2) (wordsLower, (map wordsLower)) 
                       where wordsLower = words.map toLower
 
 --------------------------------------
