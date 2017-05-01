@@ -32,6 +32,10 @@ stateOfMind brain = do
   rnd <- randomIO :: IO Float
   return $ rulesApply $ (map.map2) (id, (pick rnd)) brain
 
+  -- map2 gives result of id -> brain_0, pick rnd -> brain_1.
+  -- map then applies these functions upon all values in the inner lists
+  -- 
+
 rulesApply :: [PhrasePair] -> Phrase -> Phrase
 rulesApply = (maybe [] id.) . transformationsApply "*" reflect
 
