@@ -26,6 +26,7 @@ check1  = test1 == (-5)
 
                 -- 2b --
 -- WTF IS THIS xD
+-- So we get xs & ys .. From where? xD
 attachHeads :: a -> a -> [([a],[a])] -> [([a],[a])] 
 attachHeads h1 h2 aList = [(h1:xs,h2:ys) | (xs,ys) <- aList]
 
