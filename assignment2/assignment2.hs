@@ -44,16 +44,38 @@ test2   = maximaBy length ["cs", "efd", "lth", "it"]
 check2  = test2 == ["efd", "lth"]
 
                 -- 2d --
-type AlignmentType = (String, String)
+type AlignmentType      = (String, String)
+type AlignScoreFunction = AlignmentType -> Int
 
-optAlignments :: String -> String -> [AlignmentType]
-optAlignments s1 s2
+alignmentScore :: ScoreFunction -> AlignScoreFunction
+alignmentScore scorer (s1, s2) = sum $ zipWith scorer s1 s2
 
-similarityScore x [] scorer = sum $ map (scorer '-') x
-similarityScore [] y scorer = sum $ map (scorer '-') y
-similarityScore (s1:s1s) (s2:s2s) scorer = maximum [similarityScore s1s s2s scorer + scorer s1 s2, 
-                                             similarityScore s1s (s2:s2s) scorer + scorer s1 '-' , 
-                                             similarityScore (s1:s1s) s2s scorer + scorer '-' s2]
+optAlignments :: AlignScoreFunction -> String -> String -> [AlignmentType]
+optAlignments scorer [] []              = [("","")]
+optAlignments scorer (s1:s1s) []        = attachHeads s1 '-' (optAlignments scorer s1s [])
+optAlignments scorer [] (s2:s2s)        = attachHeads '-' s2 (optAlignments scorer [] s2s)
+optAlignments scorer (s1:s1s) (s2:s2s)  = maximaBy scorer $ match ++ upperCase ++ underCase
+                                        where 
+                                        match     = attachHeads s1 s2 (optAlignments scorer s1s s2s)
+                                        upperCase = attachHeads '-' s2 (optAlignments scorer (s1:s1s) s2s)
+                                        underCase = attachHeads s1 '-' (optAlignments scorer s1s (s2:s2s))
+
+                -- TEST 2 d --
+alignScorer = alignmentScore scorer1
+test3 = optAlignments alignScorer "writers" "vintner"
+expected3 = [("writ-ers", "vintner-"), ("wri-t-ers", "v-intner-"), ("wri-t-ers", "-vintner-")]
+check3 = test3 == expected3
+
+
+                -- 2 e --
+outputOptAlignments :: AlignScoreFunction -> String -> String -> IO 
+outputOptAlignments scorer (s1:s1s) (s2:s2s)
+
+--similarityScore x [] scorer = sum $ map (scorer '-') x
+--similarityScore [] y scorer = sum $ map (scorer '-') y
+--similarityScore (s1:s1s) (s2:s2s) scorer = maximum [similarityScore s1s s2s scorer + scorer s1 s2, 
+--                                             similarityScore s1s (s2:s2s) scorer + scorer s1 '-' , 
+--                                             similarityScore (s1:s1s) s2s scorer + scorer '-' s2]
 
 
 
