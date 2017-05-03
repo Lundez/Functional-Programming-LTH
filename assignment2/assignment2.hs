@@ -1,4 +1,4 @@
-import Data.List(elemIndices)
+import Data.List(elemIndices, intercalate)
 import Data.Maybe
 --optimalAlignments :: Int -> Int -> Int -> String -> String -> [AlignmentType]
 
@@ -68,16 +68,25 @@ check3 = test3 == expected3
 
 
                 -- 2 e --
-outputOptAlignments :: AlignScoreFunction -> String -> String -> IO 
-outputOptAlignments scorer (s1:s1s) (s2:s2s)
+outputOptAlignments :: AlignScoreFunction -> String -> String -> IO() 
+outputOptAlignments scorer s1 s2 =
+                                 do
+                                    putStr ("There is " ++ (show $ length $ fst answer) ++ " optimal alignments:")
+                                    putStr $ concat superlist
+                                    putStr "\n"
+                                    where 
+                                      answer      = unzip $ optAlignments scorer s1 s2
+                                      superlist   = createStringListOfTuple answer
 
---similarityScore x [] scorer = sum $ map (scorer '-') x
---similarityScore [] y scorer = sum $ map (scorer '-') y
---similarityScore (s1:s1s) (s2:s2s) scorer = maximum [similarityScore s1s s2s scorer + scorer s1 s2, 
---                                             similarityScore s1s (s2:s2s) scorer + scorer s1 '-' , 
---                                             similarityScore (s1:s1s) s2s scorer + scorer '-' s2]
+createStringListOfTuple :: ([String],[String]) -> [String]
+createStringListOfTuple ([],[])           = []
+createStringListOfTuple ((a:as),(b:bs))   = "\n\n":a:"\n":b:createStringListOfTuple (as, bs)
 
+              -- TEST 2 e --
+test4 = outputOptAlignments alignScorer "writers" "vintner"
 
+              -- 3 --
+--similarityScoreOpt :: Scorer -> String -> String -> Int
 
 mcsLength :: Eq a => [a] -> [a] -> Int
 mcsLength xs ys = mcsLen (length xs) (length ys)
