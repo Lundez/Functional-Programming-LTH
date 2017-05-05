@@ -6,11 +6,11 @@ import Data.Maybe
 type ScoreFunction = (Char -> Char -> Int)
 
 similarityScore :: String -> String -> ScoreFunction -> Int
-similarityScore s1 [] scorer = sum $ map (scorer '-') s1
-similarityScore [] s2 scorer = sum $ map (scorer '-') s2
-similarityScore (s1:s1s) (s2:s2s) scorer = maximum [similarityScore s1s s2s scorer + scorer s1 s2, 
-                                             similarityScore s1s (s2:s2s) scorer + scorer s1 '-' , 
-                                             similarityScore (s1:s1s) s2s scorer + scorer '-' s2]
+similarityScore s1s [] scorer             = sum $ map (scorer '-') s1s
+similarityScore [] s2s scorer             = sum $ map (scorer '-') s2s
+similarityScore (s1:s1s) (s2:s2s) scorer = maximum [similarityScore s1s s2s scorer      + scorer s1 s2, 
+                                                    similarityScore s1s (s2:s2s) scorer + scorer s1 '-', 
+                                                    similarityScore (s1:s1s) s2s scorer + scorer '-' s2]
 
 -- calculate similarity, first get the scoreFn by doing: score 0 1 (-1). Then you'll have a (Char -> Char -> Int) function
 score :: Int -> Int -> Int -> Char -> Char -> Int
@@ -34,7 +34,7 @@ attachHeads h1 h2 aList = [(h1:xs,h2:ys) | (xs,ys) <- aList]
                 -- 2c --
 maximaBy :: Ord b => (a->b) -> [a] -> [a]
 maximaBy valueFcn xs = map (xs !!)  indexesOfMaxVals
-                     where 
+                     where
                      valuesXs         = map valueFcn xs
                      maxValue         = maximum valuesXs
                      indexesOfMaxVals = elemIndices maxValue valuesXs 
@@ -88,8 +88,51 @@ test4 = outputOptAlignments alignScorer "writers" "vintner"
               -- 3 --
 --similarityScoreOpt :: Scorer -> String -> String -> Int
 
-mcsLength :: Eq a => [a] -> [a] -> Int
-mcsLength xs ys = mcsLen (length xs) (length ys)
+
+--Subsequence [1,2,3], [1,4,2] == [1,2] = 2 då man tar bort icke lika element och sen bara sätter ihop. 
+--Bygger först matris med hur många likadana element i varje del av sträng. 
+mcsSim :: String -> String -> ScoreFunction -> Int
+mcsSim xs ys scorer = mcsLen (length xs) (length ys)
+  where
+    mcsLen i j = mcsTable!!i!!j
+    mcsTable = [[ mcsEntry i j | j<-[0..]] | i<-[0..] ]
+
+    mcsEntry :: Int -> Int -> Int
+    mcsEntry _ 0 = scorer '-' '-'
+    mcsEntry 0 _ = scorer '-' '-'
+    mcsEntry i j = maximum [scorer x y   + mcsLen (i-1) (j-1), 
+                            scorer '-' y + mcsLen (i) (j-1), 
+                            scorer x '-' + mcsLen (i-1) (j)]
+      where
+         x = xs!!(i-1)
+         y = ys!!(j-1)
+
+--optAlignments :: AlignScoreFunction -> String -> String -> [AlignmentType]
+--optAlignments scorer [] []              = [("","")]
+--optAlignments scorer (s1:s1s) []        = attachHeads s1 '-' (optAlignments scorer s1s [])
+--optAlignments scorer [] (s2:s2s)        = attachHeads '-' s2 (optAlignments scorer [] s2s)
+--optAlignments scorer (s1:s1s) (s2:s2s)  = maximaBy scorer $ match ++ upperCase ++ underCase
+--                                        where 
+--                                        match     = attachHeads s1 s2 (optAlignments scorer s1s s2s)
+--                                        upperCase = attachHeads '-' s2 (optAlignments scorer (s1:s1s) s2s)
+--                                        underCase = attachHeads s1 '-' (optAlignments scorer s1s (s2:s2s))
+
+mcsOpt :: String -> String -> AlignScoreFunction -> [AlignmentType]
+mcsOpt xs ys scorer = mcsLen (length xs) (length ys)
+  where
+    mcsLen i j = mcsTable!!i!!j
+    mcsTable = [[ mcsEntry i j | j<-[0..]] | i<-[0..] ]
+
+    mcsEntry :: Int -> Int -> (Int, [AlignmentType])
+    mcsEntry _ 0 = 
+    mcsEntry 0 _ = 
+    mcsEntry i j = 
+      where
+         x = xs!!(i-1)
+         y = ys!!(j-1)
+
+mcsLength :: Eq a => [a] -> [a] -> ScoreFunction -> Int
+mcsLength xs ys scorer = mcsLen (length xs) (length ys)
   where
     mcsLen i j = mcsTable!!i!!j
     mcsTable = [[ mcsEntry i j | j<-[0..]] | i<-[0..] ]
