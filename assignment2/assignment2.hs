@@ -109,7 +109,7 @@ mcsOpt xs ys scorer = snd $ mcsLen (length xs) (length ys)
     mcsTable = [[ mcsEntry i j | j<-[0..]] | i<-[0..] ]
 
     mcsEntry :: Int -> Int -> (Int, [AlignmentType])
-    mcsEntry 0 0 = (0, [([],[]),([],[])])
+    mcsEntry 0 0 = (0, [([],[])])
     mcsEntry i 0 = (score, align)
                     where
                     (mcsScore, mcsAlign) = mcsLen (i-1) 0
