@@ -1,9 +1,5 @@
 import Data.List(elemIndices, intercalate)
 import Data.Maybe
-import Data.Set(fromList,toList)
-
---optimalAlignments :: Int -> Int -> Int -> String -> String -> [AlignmentType]
-
                 -- 2a --
 type ScoreFunction = (Char -> Char -> Int)
 
@@ -14,7 +10,6 @@ similarityScore (s1:s1s) (s2:s2s) scorer = maximum [similarityScore s1s s2s scor
                                                     similarityScore s1s (s2:s2s) scorer + scorer s1 '-', 
                                                     similarityScore (s1:s1s) s2s scorer + scorer '-' s2]
 
--- calculate similarity, first get the scoreFn by doing: score 0 1 (-1). Then you'll have a (Char -> Char -> Int) function
 score :: Int -> Int -> Int -> Char -> Char -> Int
 score scoreSpace scoreMatch scoreMismatch x y
                                             | x == '-' || y == '-'      = scoreSpace
@@ -88,9 +83,6 @@ createStringListOfTuple ((a:as),(b:bs))   = "\n\n":a:"\n":b:createStringListOfTu
 test4 = outputOptAlignments alignScorer "writers" "vintner"
 
               -- 3 --
---similarityScoreOpt :: Scorer -> String -> String -> Int
-
-
 --Subsequence [1,2,3], [1,4,2] == [1,2] = 2 då man tar bort icke lika element och sen bara sätter ihop. 
 --Bygger först matris med hur många likadana element i varje del av sträng. 
 mcsSim :: String -> String -> ScoreFunction -> Int
@@ -109,19 +101,6 @@ mcsSim xs ys scorer = mcsLen (length xs) (length ys)
       where
          x = xs!!(i-1)
          y = ys!!(j-1)
-
---optAlignments :: AlignScoreFunction -> String -> String -> [AlignmentType]
---optAlignments scorer [] []              = [("","")]
---optAlignments scorer (s1:s1s) []        = attachHeads s1 '-' (optAlignments scorer s1s [])
---optAlignments scorer [] (s2:s2s)        = attachHeads '-' s2 (optAlignments scorer [] s2s)
---optAlignments scorer (s1:s1s) (s2:s2s)  = maximaBy scorer $ match ++ upperCase ++ underCase
---                                        where 
---                                        match     = attachHeads s1 s2 (optAlignments scorer s1s s2s)
---                                        upperCase = attachHeads '-' s2 (optAlignments scorer (s1:s1s) s2s)
---                                        underCase = attachHeads s1 '-' (optAlignments scorer s1s (s2:s2s))
-
-attachTails :: a -> a -> [([a],[a])] -> [([a],[a])]
-attachTails t1 t2 aList = [(xs ++ [t1], ys ++ [t2]) | (xs,ys) <- aList]
 
 mcsOpt :: String -> String -> ScoreFunction -> [AlignmentType]
 mcsOpt xs ys scorer = snd $ mcsLen (length xs) (length ys)
@@ -165,5 +144,3 @@ mcsOpt xs ys scorer = snd $ mcsLen (length xs) (length ys)
     y j = ys!!(length ys -j)
 
 test6 = mcsOpt "writers" "vintner" scorer1
-expected6 = [("writ-ers", "vintner-"), ("wri-t-ers", "v-intner-"), ("wri-t-ers", "-vintner-")]
-check6 = test6 == expected6
