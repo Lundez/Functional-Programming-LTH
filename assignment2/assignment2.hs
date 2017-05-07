@@ -1,5 +1,7 @@
 import Data.List(elemIndices, intercalate)
 import Data.Maybe
+import Data.Set(fromList,toList)
+
 --optimalAlignments :: Int -> Int -> Int -> String -> String -> [AlignmentType]
 
                 -- 2a --
@@ -129,34 +131,39 @@ mcsOpt xs ys scorer = snd $ mcsLen (length xs) (length ys)
 
     mcsEntry :: Int -> Int -> (Int, [AlignmentType])
     mcsEntry 0 0 = (0, [([],[]),([],[])])
-    mcsEntry i 0 = (scorer '-' '-' + fst (mcsLen (i-1) 0), attachTails (xs !! (i-1)) '-' $ snd $ mcsLen (i-1) 0)
-    mcsEntry 0 j = (scorer '-' '-' + fst (mcsLen 0 (j-1)), attachTails '-' (xs !! (j-1)) $ snd $ mcsLen 0 (j-1))
-    mcsEntry i j = (fst $ head max, concatMap snd max)
+    mcsEntry i 0 = (score, align)
+                    where
+                    (mcsScore, mcsAlign) = mcsLen (i-1) 0
+                    align = attachHeads '-' (x i) mcsAlign
+                    score = scorer '-' (x i) + mcsScore
+    mcsEntry 0 j = (score, align)
+                    where
+                    (mcsScore, mcsAlign) = mcsLen 0 (j-1)
+                    align = attachHeads '-' (y j) mcsAlign
+                    score = scorer '-' (y j) + mcsScore
+    mcsEntry i j = (maxScore, maxAlign)
       where
-         x = xs!!(i-1)
-         y = ys!!(j-1)
-         max = maximaBy fst [(scorer x y   +  fst (mcsLen (i-1) (j-1)), attachTails x y   $ snd $ mcsLen (i-1) (j-1)),
-                             (scorer x '-' +  fst (mcsLen (i-1) j),     attachTails x '-' $ snd $ mcsLen (i-1) j),
-                             (scorer '-' y +  fst (mcsLen i (j-1)),     attachTails '-' y $ snd $ mcsLen i (j-1))]
+         maxElems = maximaBy fst [match, spaceUp, spaceUnd]
+         maxScore = (fst.head) maxElems
+         maxAlign = concat $ map snd maxElems
+         match    = (score, align)
+                    where 
+                      (mcsScore, mcsAlign) = mcsLen (i-1) (j-1)
+                      align = attachHeads (x i) (y j) mcsAlign
+                      score = scorer (x i) (y j) + mcsScore
+         spaceUp   = (score, align)
+                    where 
+                      (mcsScore, mcsAlign) = mcsLen i (j-1)
+                      align = attachHeads '-' (y j) mcsAlign
+                      score = scorer '-' (y j) + mcsScore
+         spaceUnd  = (score, align)
+                    where 
+                    (mcsScore, mcsAlign) = mcsLen (i-1) j
+                    align = attachHeads (x i) '-' mcsAlign
+                    score = scorer (x i) '-' + mcsScore
+    x i = xs!!(length xs - i)
+    y j = ys!!(length ys -j)
 
 test6 = mcsOpt "writers" "vintner" scorer1
 expected6 = [("writ-ers", "vintner-"), ("wri-t-ers", "v-intner-"), ("wri-t-ers", "-vintner-")]
 check6 = test6 == expected6
-
-
-mcsLength :: Eq a => [a] -> [a] -> ScoreFunction -> Int
-mcsLength xs ys scorer = mcsLen (length xs) (length ys)
-  where
-    mcsLen i j = mcsTable!!i!!j
-    mcsTable = [[ mcsEntry i j | j<-[0..]] | i<-[0..] ]
-       
-    mcsEntry :: Int -> Int -> Int
-    mcsEntry _ 0 = 0
-    mcsEntry 0 _ = 0
-    mcsEntry i j
-      | x == y    = 1 + mcsLen (i-1) (j-1)
-      | otherwise = max (mcsLen i (j-1)) 
-                        (mcsLen (i-1) j)
-      where
-         x = xs!!(i-1)
-         y = ys!!(j-1)
