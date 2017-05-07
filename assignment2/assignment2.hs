@@ -98,11 +98,12 @@ mcsSim xs ys scorer = mcsLen (length xs) (length ys)
     mcsTable = [[ mcsEntry i j | j<-[0..]] | i<-[0..] ]
 
     mcsEntry :: Int -> Int -> Int
-    mcsEntry _ 0 = scorer '-' '-'
-    mcsEntry 0 _ = scorer '-' '-'
+    mcsEntry 0 0 = 0
+    mcsEntry i 0 = scorer '-' '-' + mcsLen (i-1) 0
+    mcsEntry 0 j = scorer '-' '-' + mcsLen 0 (j-1)
     mcsEntry i j = maximum [scorer x y   + mcsLen (i-1) (j-1), 
-                            scorer '-' y + mcsLen (i) (j-1), 
-                            scorer x '-' + mcsLen (i-1) (j)]
+                            scorer '-' y + mcsLen i (j-1), 
+                            scorer x '-' + mcsLen (i-1) j]
       where
          x = xs!!(i-1)
          y = ys!!(j-1)
@@ -117,19 +118,31 @@ mcsSim xs ys scorer = mcsLen (length xs) (length ys)
 --                                        upperCase = attachHeads '-' s2 (optAlignments scorer (s1:s1s) s2s)
 --                                        underCase = attachHeads s1 '-' (optAlignments scorer s1s (s2:s2s))
 
-mcsOpt :: String -> String -> AlignScoreFunction -> [AlignmentType]
-mcsOpt xs ys scorer = mcsLen (length xs) (length ys)
+attachTails :: a -> a -> [([a],[a])] -> [([a],[a])]
+attachTails t1 t2 aList = [(xs ++ [t1], ys ++ [t2]) | (xs,ys) <- aList]
+
+mcsOpt :: String -> String -> ScoreFunction -> [AlignmentType]
+mcsOpt xs ys scorer = snd $ mcsLen (length xs) (length ys)
   where
     mcsLen i j = mcsTable!!i!!j
     mcsTable = [[ mcsEntry i j | j<-[0..]] | i<-[0..] ]
 
     mcsEntry :: Int -> Int -> (Int, [AlignmentType])
-    mcsEntry _ 0 = 
-    mcsEntry 0 _ = 
-    mcsEntry i j = 
+    mcsEntry 0 0 = (0, [([],[]),([],[])])
+    mcsEntry i 0 = (scorer '-' '-' + fst (mcsLen (i-1) 0), attachTails (xs !! (i-1)) '-' $ snd $ mcsLen (i-1) 0)
+    mcsEntry 0 j = (scorer '-' '-' + fst (mcsLen 0 (j-1)), attachTails '-' (xs !! (j-1)) $ snd $ mcsLen 0 (j-1))
+    mcsEntry i j = (fst $ head max, concatMap snd max)
       where
          x = xs!!(i-1)
          y = ys!!(j-1)
+         max = maximaBy fst [(scorer x y   +  fst (mcsLen (i-1) (j-1)), attachTails x y   $ snd $ mcsLen (i-1) (j-1)),
+                             (scorer x '-' +  fst (mcsLen (i-1) j),     attachTails x '-' $ snd $ mcsLen (i-1) j),
+                             (scorer '-' y +  fst (mcsLen i (j-1)),     attachTails '-' y $ snd $ mcsLen i (j-1))]
+
+test6 = mcsOpt "writers" "vintner" scorer1
+expected6 = [("writ-ers", "vintner-"), ("wri-t-ers", "v-intner-"), ("wri-t-ers", "-vintner-")]
+check6 = test6 == expected6
+
 
 mcsLength :: Eq a => [a] -> [a] -> ScoreFunction -> Int
 mcsLength xs ys scorer = mcsLen (length xs) (length ys)
