@@ -22,11 +22,8 @@ m -# n = m # n >-> snd
 (#-) :: Parser a -> Parser b -> Parser a
 m #- n = m # n >-> fst --error "#- not implemented"
 
-space :: Parser Char
-space = char ? isSpace
-
 spaces :: Parser String
-spaces = iter space
+spaces = iter (char ? isSpace)
 
 token :: Parser a -> Parser a
 token m = m #- spaces
