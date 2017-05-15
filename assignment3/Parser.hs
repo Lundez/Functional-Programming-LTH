@@ -1,6 +1,6 @@
 module Parser(module CoreParser, T, digit, digitVal, chars, letter, err,
               lit, number, iter, accept, require, token,
-              spaces, word, (-#), (#-)) where
+              spaces, word, (-#), (#-), comment) where
 import Prelude hiding (return, fail)
 import Data.Char
 import CoreParser
@@ -28,6 +28,11 @@ spaces = iter (char ? isSpace)
 token :: Parser a -> Parser a
 token m = m #- spaces
 
+isNewline :: Char -> Bool
+isNewline c = c == '\n'
+
+comment :: Parser String
+comment = iter (char ? isNewline)
 -- String -> (a, String)
 letter :: Parser Char
 letter = char ? isAlpha
