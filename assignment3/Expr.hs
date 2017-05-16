@@ -29,7 +29,7 @@ import qualified Dictionary
 import Data.Maybe
 
 data Expr = Num Integer | Var String | Add Expr Expr
-       | Sub Expr Expr | Mul Expr Expr | Div Expr Expr
+       | Sub Expr Expr | Mul Expr Expr | Div Expr Expr | Exp Expr Expr
          deriving Show
 
 type T = Expr
@@ -43,7 +43,8 @@ var = word >-> Var
 num = number >-> Num
 
 mulOp = lit '*' >-> (\ _ -> Mul) !
-        lit '/' >-> (\ _ -> Div)
+        lit '/' >-> (\ _ -> Div) !
+        lit '^' >-> (\ _ -> Exp)
 
 addOp = lit '+' >-> (\ _ -> Add) !
         lit '-' >-> (\ _ -> Sub)
@@ -70,11 +71,12 @@ shw prec (Add t u) = parens (prec>5) (shw 5 t ++ "+" ++ shw 5 u)
 shw prec (Sub t u) = parens (prec>5) (shw 5 t ++ "-" ++ shw 6 u)
 shw prec (Mul t u) = parens (prec>6) (shw 6 t ++ "*" ++ shw 6 u)
 shw prec (Div t u) = parens (prec>6) (shw 6 t ++ "/" ++ shw 7 u)
+shw prec (Exp t u) = parens (prec>6) (shw 6 t ++ "^" ++ shw 7 u)
 
 value :: Expr -> Dictionary.T String Integer -> Integer
 value (Num n) _ = n
 value (Var v) dict
-                 | Dictionary.lookup v dict == Nothing = error $ "Variable not in the dictionary"
+                 | x == Nothing = error $ "Variable not in the dictionary"
                  | otherwise                           = fromJust x
                 where
                     x = Dictionary.lookup v dict
@@ -83,7 +85,8 @@ value (Sub a b) dict = value a dict - value b dict
 value (Mul a b) dict = value a dict * value b dict
 value (Div a b) dict
                    | value b dict == 0    = error $ "Value in div is zero"
-                   | otherwise            =  div (value a dict) (value b dict) 
+                   | otherwise            =  div (value a dict) (value b dict)
+value (Exp a b) dict = value a dict ^ value b dict
 
 instance Parse Expr where
     parse = expr

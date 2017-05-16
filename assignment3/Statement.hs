@@ -11,7 +11,7 @@ data Statement =
     Skip |
     While Expr.T Statement|
     Read String |
-    Comment |
+    Comment String |
     Write Expr.T
     deriving Show
 
@@ -44,13 +44,22 @@ buildRead s1        = Read s1
 writeStatement      = accept "write" -# Expr.parse #- require ";" >-> buildWrite
 buildWrite e        = Write e
 
-commentStatement    = accept "--" #- comment >-> buildComment
-buildComment a      = Comment
+commentStatement    = accept "--" -# comment #- require "\n" >-> buildComment
+buildComment a      = Comment a
 
---shw :: Int 
+showStmt :: Int -> Statement -> String
+showStmt n (Assignment v e) = (replicate n '\t') ++ v ++ " := " ++ (Expr.toString e) ++ ";\n"
+showStmt n (Skip)           = (replicate n '\t') ++ "skip;\n"
+showStmt n (If e s1 s2)     = (replicate n '\t') ++ "if " ++ (Expr.toString e) ++ " then\n" ++ showStmt (n+1) s1 ++ (replicate n '\t') ++ "else\n" ++ showStmt (n+1) s2
+showStmt n (Begin s1s)      = (replicate n '\t') ++ "begin\n" ++ concat(map (showStmt (n+1)) s1s) ++ (replicate n '\t') ++ "end\n"
+showStmt n (While e s1)     = (replicate n '\t') ++ "while " ++ (Expr.toString e) ++ (replicate n '\t') ++ " do\n" ++ showStmt (n+1) s1
+showStmt n (Read s1)        = (replicate n '\t') ++ "read " ++ s1 ++ ";\n"
+showStmt n (Write e)        = (replicate n '\t') ++ "write " ++ (Expr.toString e) ++ ";" ++ "\n"
+showStmt n (Comment s)      = (replicate n '\t') ++ "--" ++ s ++ "\n"
 
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
+exec [] dict input = []
 exec (If cond thenStmts elseStmts: stmts) dict input =
     if (Expr.value cond dict)>0
     then exec (thenStmts: stmts) dict input
@@ -66,8 +75,8 @@ exec (While e s: stmts) dict input =
     else exec stmts dict input
 exec (Read s1 : stmts) dict (input:rest) = exec stmts (Dictionary.insert(s1, input) dict) rest
 exec (Write e : stmts) dict input = (Expr.value e dict) : exec stmts dict input
-exec (Comment : stmts) dict input = exec stmts dict input
+exec (Comment a: stmts) dict input = exec stmts dict input
 
 instance Parse Statement where
   parse = assignment ! ifStatement ! beginStatement ! skipStatement ! whileStatement ! readStatement ! writeStatement ! commentStatement
-  toString = --error "Statement.toString not implemented"
+  toString = showStmt 0

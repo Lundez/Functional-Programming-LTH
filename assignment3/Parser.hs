@@ -29,10 +29,11 @@ token :: Parser a -> Parser a
 token m = m #- spaces
 
 isNewline :: Char -> Bool
-isNewline c = c == '\n'
+isNewline c = c /= '\n'
 
 comment :: Parser String
 comment = iter (char ? isNewline)
+
 -- String -> (a, String)
 letter :: Parser Char
 letter = char ? isAlpha
